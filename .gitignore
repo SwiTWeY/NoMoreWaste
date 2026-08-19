@@ -1,0 +1,9 @@
+api/.env
+*.env
+!api/.env.example
+/api/bin/
+/api/server
+/api/cron
+node_modules/
+vendor/
+.DS_Store
