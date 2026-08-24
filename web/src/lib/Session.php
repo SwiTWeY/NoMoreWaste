@@ -30,6 +30,17 @@ class Session
         return isset($_SESSION['token']);
     }
 
+    public static function estPersonnel(): bool
+    {
+        $u = self::utilisateur();
+        return $u !== null && !empty($u['est_personnel']);
+    }
+
+    public static function estBenevole(): bool
+    {
+        return !empty($_SESSION['est_benevole']);
+    }
+
     public static function deconnecter(): void
     {
         $_SESSION = [];

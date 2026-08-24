@@ -21,3 +21,12 @@ type Creneau struct {
 	CapaciteMax    int       `json:"capacite_max"`
 	Statut         string    `json:"statut"`
 }
+
+type EvenementAgenda struct {
+	Type    string    `json:"type"`
+	Date    time.Time `json:"date"`
+	Heure   string    `json:"heure"`
+	Libelle string    `json:"libelle"`
+	Lieu    string    `json:"lieu"`
+	Statut  string    `json:"statut"`
+}

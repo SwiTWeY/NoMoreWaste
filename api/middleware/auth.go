@@ -43,3 +43,8 @@ func Personnel(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func ClaimsDepuis(r *http.Request) (*auth.Claims, bool) {
+	c, ok := r.Context().Value(CleClaims).(*auth.Claims)
+	return c, ok
+}

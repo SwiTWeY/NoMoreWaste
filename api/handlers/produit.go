@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/lib/pq"
+
 	"github.com/SwiTWeY/NoMoreWaste/api/bdd"
 	"github.com/SwiTWeY/NoMoreWaste/api/models"
 	"github.com/SwiTWeY/NoMoreWaste/api/utils"
@@ -71,6 +73,11 @@ func (h ProduitHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	cree, err := bdd.CreateProduit(h.DB, p)
 	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
+			utils.Error(w, http.StatusConflict, "ce code-barres existe deja")
+			return
+		}
 		utils.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -97,4 +104,13 @@ func (h ProduitHandler) StockParCodeBarre(w http.ResponseWriter, r *http.Request
 		return
 	}
 	utils.JSON(w, http.StatusOK, s)
+}
+
+func (h ProduitHandler) Categories(w http.ResponseWriter, r *http.Request) {
+	categories, err := bdd.ListCategories(h.DB)
+	if err != nil {
+		utils.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	utils.JSON(w, http.StatusOK, categories)
 }

@@ -83,3 +83,13 @@ func ListLignesTournee(db *sql.DB, tourneeID int) ([]models.LigneTournee, error)
 	}
 	return lignes, rows.Err()
 }
+
+func CreateTournee(db *sql.DB, t models.Tournee) (models.Tournee, error) {
+	err := db.QueryRow(`
+		INSERT INTO tournee (reference, vehicule_id, chauffeur_id, date_prevue, statut, commentaire)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id`,
+		t.Reference, t.VehiculeID, t.ChauffeurID, t.DatePrevue, t.Statut, t.Commentaire).
+		Scan(&t.ID)
+	return t, err
+}

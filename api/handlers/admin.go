@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/SwiTWeY/NoMoreWaste/api/bdd"
 	"github.com/SwiTWeY/NoMoreWaste/api/config"
 	"github.com/SwiTWeY/NoMoreWaste/api/rappel"
 	"github.com/SwiTWeY/NoMoreWaste/api/utils"
@@ -21,4 +22,13 @@ func (h AdminHandler) DeclencherRappels(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	utils.JSON(w, http.StatusOK, map[string]int{"rappels_envoyes": n})
+}
+
+func (h AdminHandler) Stats(w http.ResponseWriter, r *http.Request) {
+	s, err := bdd.Stats(h.DB)
+	if err != nil {
+		utils.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	utils.JSON(w, http.StatusOK, s)
 }

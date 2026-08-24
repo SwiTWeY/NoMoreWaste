@@ -88,6 +88,11 @@ func (h AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !u.Actif {
+		utils.Error(w, http.StatusForbidden, "compte suspendu")
+		return
+	}
+
 	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(req.MotDePasse)); err != nil {
 		utils.Error(w, http.StatusUnauthorized, "identifiants invalides")
 		return
@@ -99,8 +104,14 @@ func (h AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	estBenevole := false
+	if _, statutB, errB := bdd.GetProfilBenevoleParUtilisateur(h.DB, u.ID); errB == nil && statutB == "valide" {
+		estBenevole = true
+	}
+
 	utils.JSON(w, http.StatusOK, map[string]any{
-		"token":       token,
-		"utilisateur": u,
+		"token":        token,
+		"utilisateur":  u,
+		"est_benevole": estBenevole,
 	})
 }

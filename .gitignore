@@ -7,3 +7,4 @@ api/.env
 node_modules/
 vendor/
 .DS_Store
+dist/

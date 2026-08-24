@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/SwiTWeY/NoMoreWaste/api/bdd"
 	"github.com/SwiTWeY/NoMoreWaste/api/export"
+	"github.com/SwiTWeY/NoMoreWaste/api/models"
 	"github.com/SwiTWeY/NoMoreWaste/api/utils"
 )
 
@@ -54,6 +56,27 @@ func (h TourneeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		"arrets":   arrets,
 		"produits": lignes,
 	})
+}
+
+func (h TourneeHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var t models.Tournee
+	if err := json.NewDecoder(r.Body).Decode(&t); err != nil {
+		utils.Error(w, http.StatusBadRequest, "corps de requete invalide")
+		return
+	}
+	if t.Reference == "" || t.DatePrevue.IsZero() {
+		utils.Error(w, http.StatusBadRequest, "reference et date_prevue sont requis")
+		return
+	}
+	if t.Statut == "" {
+		t.Statut = "planifiee"
+	}
+	cree, err := bdd.CreateTournee(h.DB, t)
+	if err != nil {
+		utils.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	utils.JSON(w, http.StatusCreated, cree)
 }
 
 func (h TourneeHandler) ExportPDF(w http.ResponseWriter, r *http.Request) {

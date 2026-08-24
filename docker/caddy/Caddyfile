@@ -1,0 +1,4 @@
+nomorewaste.upcycle-connect.fr {
+    reverse_proxy nginx:80
+    encode gzip
+}

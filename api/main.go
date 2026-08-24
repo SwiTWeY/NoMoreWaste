@@ -32,13 +32,23 @@ func main() {
 	utilisateur := handlers.UtilisateurHandler{DB: db}
 	admin := handlers.AdminHandler{DB: db, Cfg: cfg}
 	authH := handlers.AuthHandler{DB: db, Cfg: cfg}
-	mux := http.NewServeMux()
-	protege := middleware.Auth(cfg.JWTSecret)
 	produit := handlers.ProduitHandler{DB: db}
 	collecte := handlers.CollecteHandler{DB: db}
 	benevole := handlers.BenevoleHandler{DB: db}
 	service := handlers.ServiceHandler{DB: db}
 	tournee := handlers.TourneeHandler{DB: db}
+
+	auth := middleware.Auth(cfg.JWTSecret)
+	connecte := func(h http.HandlerFunc) http.Handler {
+		return auth(h)
+	}
+	perso := func(h http.HandlerFunc) http.Handler {
+		return auth(middleware.Personnel(h))
+	}
+
+	mux := http.NewServeMux()
+
+	// --- Public ---
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		if err := db.Ping(); err != nil {
 			utils.Error(w, http.StatusServiceUnavailable, "database unreachable")
@@ -46,35 +56,55 @@ func main() {
 		}
 		utils.JSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
-
-	mux.HandleFunc("GET /adhesions", adhesion.List)
-	mux.HandleFunc("GET /adhesions/{id}", adhesion.Get)
-	mux.HandleFunc("POST /adhesions", adhesion.Create)
-	mux.Handle("POST /admin/rappels", protege(middleware.Personnel(http.HandlerFunc(admin.DeclencherRappels))))
-	mux.HandleFunc("GET /utilisateurs/{id}/adherent-actif", utilisateur.AdherentActif)
 	mux.HandleFunc("POST /register", authH.Register)
 	mux.HandleFunc("POST /login", authH.Login)
-	mux.HandleFunc("GET /produits", produit.List)
-	mux.HandleFunc("GET /produits/{id}", produit.Get)
-	mux.HandleFunc("GET /produits/code-barre/{code}", produit.GetParCodeBarre)
-	mux.HandleFunc("POST /produits", produit.Create)
-	mux.HandleFunc("GET /stock", produit.Stock)
-	mux.HandleFunc("GET /stock/code-barre/{code}", produit.StockParCodeBarre)
-	mux.HandleFunc("GET /collectes", collecte.List)
-	mux.HandleFunc("GET /collectes/{id}", collecte.Get)
-	mux.HandleFunc("POST /collectes", collecte.Create)
-	mux.HandleFunc("GET /collectes/{id}/produits", collecte.Lignes)
-	mux.HandleFunc("POST /collectes/{id}/produits", collecte.AjouterProduit)
-	mux.HandleFunc("GET /benevoles", benevole.List)
-	mux.HandleFunc("POST /benevoles/{id}/statut", benevole.ChangerStatut)
-	mux.HandleFunc("GET /competences", benevole.Competences)
-	mux.HandleFunc("POST /benevoles/{id}/competences", benevole.AjouterCompetence)
 	mux.HandleFunc("GET /services", service.ListServices)
 	mux.HandleFunc("GET /creneaux", service.ListCreneaux)
-	mux.HandleFunc("GET /planning.xlsx", service.ExportPlanning)
-	mux.HandleFunc("GET /tournees", tournee.List)
-	mux.HandleFunc("GET /tournees/{id}", tournee.Get)
-	mux.HandleFunc("GET /tournees/{id}/pdf", tournee.ExportPDF)
+
+	// --- Adherent connecte (front-office) ---
+	mux.Handle("POST /creneaux/{id}/inscription", connecte(service.Inscrire))
+	mux.Handle("GET /mon-agenda", connecte(service.MonAgenda))
+	mux.Handle("POST /creneaux/{id}/affectation", connecte(benevole.ProposerAnimation))
+	mux.Handle("POST /benevoles/candidature", connecte(benevole.Postuler))
+
+	// --- Back-office (personnel uniquement) ---
+	mux.Handle("GET /utilisateurs", perso(utilisateur.List))
+	mux.Handle("POST /utilisateurs/{id}/ban", perso(utilisateur.Bannir))
+	mux.Handle("GET /utilisateurs/{id}/adherent-actif", perso(utilisateur.AdherentActif))
+
+	mux.Handle("GET /adhesions", perso(adhesion.List))
+	mux.Handle("GET /adhesions/{id}", perso(adhesion.Get))
+	mux.Handle("POST /adhesions", perso(adhesion.Create))
+	mux.Handle("POST /adhesions/{id}/statut", perso(adhesion.ChangerStatut))
+	mux.Handle("POST /admin/rappels", perso(admin.DeclencherRappels))
+	mux.Handle("GET /stats", perso(admin.Stats))
+
+	mux.Handle("GET /produits", perso(produit.List))
+	mux.Handle("GET /produits/{id}", perso(produit.Get))
+	mux.Handle("GET /produits/code-barre/{code}", perso(produit.GetParCodeBarre))
+	mux.Handle("POST /produits", perso(produit.Create))
+	mux.Handle("GET /stock", perso(produit.Stock))
+	mux.Handle("GET /stock/code-barre/{code}", perso(produit.StockParCodeBarre))
+	mux.Handle("GET /categories-produits", perso(produit.Categories))
+
+	mux.Handle("GET /collectes", perso(collecte.List))
+	mux.Handle("GET /collectes/{id}", perso(collecte.Get))
+	mux.Handle("POST /collectes", perso(collecte.Create))
+	mux.Handle("GET /collectes/{id}/produits", perso(collecte.Lignes))
+	mux.Handle("POST /collectes/{id}/produits", perso(collecte.AjouterProduit))
+
+	mux.Handle("GET /benevoles", perso(benevole.List))
+	mux.Handle("POST /benevoles/{id}/statut", perso(benevole.ChangerStatut))
+	mux.Handle("GET /competences", perso(benevole.Competences))
+	mux.Handle("POST /benevoles/{id}/competences", perso(benevole.AjouterCompetence))
+
+	mux.Handle("GET /planning.xlsx", perso(service.ExportPlanning))
+
+	mux.Handle("GET /tournees", perso(tournee.List))
+	mux.Handle("POST /tournees", perso(tournee.Create))
+	mux.Handle("GET /tournees/{id}", perso(tournee.Get))
+	mux.Handle("GET /tournees/{id}/pdf", perso(tournee.ExportPDF))
+
 	handler := middleware.Logger(mux)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -100,5 +130,4 @@ func main() {
 		log.Printf("arret force: %v", err)
 	}
 	log.Println("serveur arrete proprement")
-
 }

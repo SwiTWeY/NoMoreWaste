@@ -56,3 +56,45 @@ func ListCreneaux(db *sql.DB, langue string) ([]models.Creneau, error) {
 	}
 	return creneaux, rows.Err()
 }
+
+func CreerInscription(db *sql.DB, creneauID, utilisateurID int) error {
+	_, err := db.Exec(`
+		INSERT INTO inscription (creneau_id, utilisateur_id)
+		VALUES ($1, $2)
+		ON CONFLICT (creneau_id, utilisateur_id) DO NOTHING`,
+		creneauID, utilisateurID)
+	return err
+}
+
+func MonAgenda(db *sql.DB, utilisateurID int) ([]models.EvenementAgenda, error) {
+	rows, err := db.Query(`
+		SELECT 'service' AS type, c.date_creneau AS d, to_char(c.heure_debut, 'HH24:MI') AS h,
+		       st.libelle, COALESCE(c.lieu, ''), i.statut
+		FROM inscription i
+		JOIN creneau c ON c.id = i.creneau_id
+		JOIN service s ON s.id = c.service_id
+		JOIN langue l ON l.code = 'fr'
+		JOIN service_traduction st ON st.service_id = s.id AND st.langue_id = l.id
+		WHERE i.utilisateur_id = $1
+		UNION ALL
+		SELECT 'collecte', co.date_prevue::date, to_char(co.date_prevue, 'HH24:MI'),
+		       'Collecte', COALESCE(co.adresse_collecte, ''), co.statut
+		FROM collecte co
+		WHERE co.donateur_id = $1
+		   OR co.commercant_id IN (SELECT id FROM commercant WHERE utilisateur_id = $1)
+		ORDER BY d, h`, utilisateurID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	evenements := []models.EvenementAgenda{}
+	for rows.Next() {
+		var e models.EvenementAgenda
+		if err := rows.Scan(&e.Type, &e.Date, &e.Heure, &e.Libelle, &e.Lieu, &e.Statut); err != nil {
+			return nil, err
+		}
+		evenements = append(evenements, e)
+	}
+	return evenements, rows.Err()
+}

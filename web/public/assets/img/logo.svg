@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="NO MORE WASTE">
+  <circle cx="50" cy="50" r="48" fill="#198754"/>
+  <path d="M50 22 C33 37 33 64 50 80 C67 64 67 37 50 22 Z" fill="#ffffff"/>
+  <path d="M50 31 C46 46 46 66 50 77" fill="none" stroke="#198754" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M50 52 L59 45 M50 61 L58 55" fill="none" stroke="#198754" stroke-width="2.2" stroke-linecap="round"/>
+</svg>

@@ -66,3 +66,31 @@ func AjouterCompetenceBenevole(db *sql.DB, benevoleID, competenceID int) error {
 		ON CONFLICT DO NOTHING`, benevoleID, competenceID)
 	return err
 }
+
+func GetProfilBenevoleParUtilisateur(db *sql.DB, utilisateurID int) (int, string, error) {
+	var id int
+	var statut string
+	err := db.QueryRow(`
+		SELECT id, statut_candidature
+		FROM profil_benevole
+		WHERE utilisateur_id = $1`, utilisateurID).Scan(&id, &statut)
+	return id, statut, err
+}
+
+func CreerAffectation(db *sql.DB, creneauID, profilBenevoleID int) error {
+	_, err := db.Exec(`
+		INSERT INTO affectation (creneau_id, profil_benevole_id, statut)
+		VALUES ($1, $2, 'proposee')
+		ON CONFLICT (creneau_id, profil_benevole_id) DO NOTHING`,
+		creneauID, profilBenevoleID)
+	return err
+}
+
+func CreerCandidatureBenevole(db *sql.DB, utilisateurID int, disponibilites string) error {
+	_, err := db.Exec(`
+		INSERT INTO profil_benevole (utilisateur_id, statut_candidature, disponibilites)
+		VALUES ($1, 'candidat', $2)
+		ON CONFLICT (utilisateur_id) DO NOTHING`,
+		utilisateurID, disponibilites)
+	return err
+}

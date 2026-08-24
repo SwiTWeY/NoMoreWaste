@@ -37,6 +37,7 @@ CREATE TABLE utilisateur (
     mot_de_passe  VARCHAR(255) NOT NULL,
     telephone     VARCHAR(20),
     est_personnel BOOLEAN      NOT NULL DEFAULT FALSE,
+    actif         BOOLEAN      NOT NULL DEFAULT TRUE,
     langue_pref   VARCHAR(5)   NOT NULL DEFAULT 'fr',
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()

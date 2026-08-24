@@ -87,3 +87,25 @@ func GetStockParCodeBarre(db *sql.DB, codeBarre string) (models.StockItem, error
 		Scan(&s.ID, &s.CodeBarre, &s.Libelle, &s.Categorie, &s.DateLimite, &s.QuantiteStock)
 	return s, err
 }
+
+func ListCategories(db *sql.DB) ([]string, error) {
+	rows, err := db.Query(`
+		SELECT DISTINCT categorie
+		FROM produit
+		WHERE categorie IS NOT NULL AND categorie <> ''
+		ORDER BY categorie`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	categories := []string{}
+	for rows.Next() {
+		var c string
+		if err := rows.Scan(&c); err != nil {
+			return nil, err
+		}
+		categories = append(categories, c)
+	}
+	return categories, rows.Err()
+}

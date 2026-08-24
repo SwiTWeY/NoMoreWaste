@@ -1,5 +1,6 @@
 <h2>Stock</h2>
-<table border="1" cellpadding="6">
+<table class="table table-striped table-bordered align-middle">
+    <p><a class="btn btn-success mb-3" href="/produits/nouveau">+ Nouveau produit</a></p>
     <thead>
         <tr>
             <th>Code-barres</th>

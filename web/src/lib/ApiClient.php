@@ -21,6 +21,30 @@ class ApiClient
         return $this->requete('POST', $chemin, $corps);
     }
 
+    public function telecharger(string $chemin): array
+    {
+        $ch = curl_init($this->baseUrl . $chemin);
+
+        $entetes = [];
+        if ($this->token !== null) {
+            $entetes[] = 'Authorization: Bearer ' . $this->token;
+        }
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $entetes);
+
+        $corps = curl_exec($ch);
+        $statut = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        curl_close($ch);
+
+        return [
+            'statut' => $statut,
+            'corps' => $corps,
+            'type' => $type,
+        ];
+    }
+
     private function requete(string $methode, string $chemin, ?array $corps): array
     {
         $ch = curl_init($this->baseUrl . $chemin);

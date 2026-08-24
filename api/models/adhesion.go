@@ -5,6 +5,8 @@ import "time"
 type Adhesion struct {
 	ID             int        `json:"id"`
 	UtilisateurID  int        `json:"utilisateur_id"`
+	Nom            string     `json:"nom"`
+	Prenom         string     `json:"prenom"`
 	DateDebut      time.Time  `json:"date_debut"`
 	DateFin        time.Time  `json:"date_fin"`
 	Montant        float64    `json:"montant"`

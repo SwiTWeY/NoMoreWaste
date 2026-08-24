@@ -1,0 +1,72 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-zak}
+      POSTGRES_DB: nomorewaste
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nomorewaste"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build: ./api
+    environment:
+      PORT: "8086"
+      DATABASE_URL: postgres://postgres:${DB_PASSWORD:-zak}@db:5432/nomorewaste?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      APP_BASE_URL: ${APP_BASE_URL:-https://nomorewaste.upcycle-connect.fr}
+      RAPPEL_JOURS: ${RAPPEL_JOURS:-30}
+      SCHEDULER_INTERVALLE: ${SCHEDULER_INTERVALLE:-24h}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  php:
+    image: php:8.3-fpm
+    environment:
+      API_URL: http://api:8086
+    volumes:
+      - ./web:/var/www/html:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./web:/var/www/html:ro
+    depends_on:
+      - php
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - nginx
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  caddy_data:
+  caddy_config:
