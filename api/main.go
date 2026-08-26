@@ -69,6 +69,7 @@ func main() {
 	mux.Handle("POST /benevoles/candidature", connecte(benevole.Postuler))
 	mux.Handle("POST /paiement/checkout", connecte(paiement.CreerCheckout))
 	mux.Handle("POST /paiement/confirmer", connecte(paiement.ConfirmerPaiement))
+	mux.Handle("GET /mon-adhesion", connecte(paiement.MonAdhesion))
 
 	// --- Back-office (personnel uniquement) ---
 	mux.Handle("GET /utilisateurs", perso(utilisateur.List))

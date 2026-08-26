@@ -145,7 +145,8 @@ switch ($chemin) {
             $message = 'Paiement annulé.';
             $type_message = 'warning';
         }
-        rendre('espace/abonnement', ['titre' => 'Ma cotisation', 'message' => $message, 'type_message' => $type_message], 'layouts/front');
+        $adhesion = $api->get('/mon-adhesion')['donnees'];
+        rendre('espace/abonnement', ['titre' => 'Ma cotisation', 'message' => $message, 'type_message' => $type_message, 'adhesion' => $adhesion], 'layouts/front');
         break;
 
     case '/espace/paiement':

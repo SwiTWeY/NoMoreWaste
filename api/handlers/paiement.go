@@ -99,3 +99,23 @@ func (h PaiementHandler) ConfirmerPaiement(w http.ResponseWriter, r *http.Reques
 
 	utils.JSON(w, http.StatusOK, map[string]string{"statut": "adhesion activee"})
 }
+
+func (h PaiementHandler) MonAdhesion(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.ClaimsDepuis(r)
+	if !ok {
+		utils.Error(w, http.StatusUnauthorized, "non authentifie")
+		return
+	}
+
+	d, err := bdd.AdhesionCouranteDateFin(h.DB, claims.UtilisateurID)
+	if err != nil {
+		utils.Error(w, http.StatusInternalServerError, "erreur")
+		return
+	}
+
+	reponse := map[string]any{"actif": d.Valid, "date_fin": nil}
+	if d.Valid {
+		reponse["date_fin"] = d.Time.Format("2006-01-02")
+	}
+	utils.JSON(w, http.StatusOK, reponse)
+}

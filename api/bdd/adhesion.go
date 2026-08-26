@@ -95,3 +95,12 @@ func CreerAdhesionPayee(db *sql.DB, utilisateurID int, montant float64, sessionI
 		utilisateurID, montant, sessionID)
 	return err
 }
+
+func AdhesionCouranteDateFin(db *sql.DB, utilisateurID int) (sql.NullTime, error) {
+	var d sql.NullTime
+	err := db.QueryRow(`
+		SELECT MAX(date_fin) FROM adhesion
+		WHERE utilisateur_id = $1 AND statut_paiement = 'paye' AND date_fin >= CURRENT_DATE`,
+		utilisateurID).Scan(&d)
+	return d, err
+}
