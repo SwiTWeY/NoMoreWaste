@@ -28,6 +28,7 @@ services:
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8088}
       RAPPEL_JOURS: ${RAPPEL_JOURS:-30}
       SCHEDULER_INTERVALLE: ${SCHEDULER_INTERVALLE:-24h}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
     depends_on:
       db:
         condition: service_healthy
