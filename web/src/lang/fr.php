@@ -15,6 +15,7 @@ return [
     'mon_espace'       => 'Mon espace',
     'services'         => 'Services',
     'mon_agenda'       => 'Mon agenda',
+    'cotisation'       => 'Cotisation',
     'espace_benevole'  => 'Espace bénévole',
     'devenir_benevole' => 'Devenir bénévole',
     'tableau_de_bord'  => 'Tableau de bord',

@@ -37,6 +37,7 @@ func main() {
 	benevole := handlers.BenevoleHandler{DB: db}
 	service := handlers.ServiceHandler{DB: db}
 	tournee := handlers.TourneeHandler{DB: db}
+	paiement := handlers.PaiementHandler{DB: db, Cfg: cfg}
 
 	auth := middleware.Auth(cfg.JWTSecret)
 	connecte := func(h http.HandlerFunc) http.Handler {
@@ -66,6 +67,8 @@ func main() {
 	mux.Handle("GET /mon-agenda", connecte(service.MonAgenda))
 	mux.Handle("POST /creneaux/{id}/affectation", connecte(benevole.ProposerAnimation))
 	mux.Handle("POST /benevoles/candidature", connecte(benevole.Postuler))
+	mux.Handle("POST /paiement/checkout", connecte(paiement.CreerCheckout))
+	mux.Handle("POST /paiement/confirmer", connecte(paiement.ConfirmerPaiement))
 
 	// --- Back-office (personnel uniquement) ---
 	mux.Handle("GET /utilisateurs", perso(utilisateur.List))

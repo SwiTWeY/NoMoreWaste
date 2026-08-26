@@ -13,6 +13,7 @@ type Config struct {
 	AppBaseURL          string
 	RappelJours         string
 	SchedulerIntervalle string
+	StripeSecretKey     string
 }
 
 func getenv(key, def string) string {
@@ -31,8 +32,9 @@ func Load() Config {
 		SMTPPort:            getenv("SMTP_PORT", "587"),
 		SMTPUser:            getenv("SMTP_USER", ""),
 		SMTPPass:            getenv("SMTP_PASS", ""),
-		AppBaseURL:          getenv("APP_BASE_URL", "http://localhost:8086"),
+		AppBaseURL:          getenv("APP_BASE_URL", "http://localhost:8000"),
 		RappelJours:         getenv("RAPPEL_JOURS", "30"),
 		SchedulerIntervalle: getenv("SCHEDULER_INTERVALLE", "24h"),
+		StripeSecretKey:     getenv("STRIPE_SECRET_KEY", ""),
 	}
 }

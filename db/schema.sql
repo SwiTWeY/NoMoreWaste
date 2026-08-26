@@ -54,6 +54,7 @@ CREATE TABLE adhesion (
     montant         NUMERIC(8,2) NOT NULL DEFAULT 0,
     statut_paiement VARCHAR(20)  NOT NULL DEFAULT 'en_attente',
     rappel_envoye_le TIMESTAMPTZ,
+    stripe_session_id VARCHAR(255) UNIQUE,
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
 
     CONSTRAINT chk_adhesion_dates   CHECK (date_fin > date_debut),

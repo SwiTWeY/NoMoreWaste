@@ -127,6 +127,37 @@ switch ($chemin) {
         $msg = $reponse['statut'] === 201 ? 'Inscription enregistrée !' : ($reponse['donnees']['error'] ?? 'Inscription impossible');
         rendre('espace/services', ['titre' => 'Services', 'creneaux' => $api->get('/creneaux')['donnees'], 'message' => $msg], 'layouts/front');
         break;
+
+    case '/espace/abonnement':
+        if (!Session::estConnecte()) { header('Location: /login'); exit; }
+        $api = new ApiClient($config['api_url'], Session::token());
+        $message = null; $type_message = 'info';
+        if (($_GET['paiement'] ?? '') === 'ok' && !empty($_GET['session_id'])) {
+            $reponse = $api->post('/paiement/confirmer', ['session_id' => $_GET['session_id']]);
+            if ($reponse['statut'] === 200) {
+                $message = 'Merci ! Votre cotisation est réglée, votre compte est actif.';
+                $type_message = 'success';
+            } else {
+                $message = $reponse['donnees']['error'] ?? 'La confirmation a échoué.';
+                $type_message = 'danger';
+            }
+        } elseif (($_GET['paiement'] ?? '') === 'annule') {
+            $message = 'Paiement annulé.';
+            $type_message = 'warning';
+        }
+        rendre('espace/abonnement', ['titre' => 'Ma cotisation', 'message' => $message, 'type_message' => $type_message], 'layouts/front');
+        break;
+
+    case '/espace/paiement':
+        if (!Session::estConnecte()) { header('Location: /login'); exit; }
+        $api = new ApiClient($config['api_url'], Session::token());
+        $reponse = $api->post('/paiement/checkout', []);
+        if ($reponse['statut'] === 200 && !empty($reponse['donnees']['url'])) {
+            header('Location: ' . $reponse['donnees']['url']);
+            exit;
+        }
+        rendre('espace/abonnement', ['titre' => 'Ma cotisation', 'message' => $reponse['donnees']['error'] ?? 'Paiement indisponible', 'type_message' => 'danger'], 'layouts/front');
+        break;
     case '/adhesion-statut':
         exigerPersonnel();
         $api = new ApiClient($config['api_url'], Session::token());

@@ -15,6 +15,7 @@
                 <a class="nav-link" href="/espace"><?= t('mon_espace') ?></a>
                 <a class="nav-link" href="/espace/services"><?= t('services') ?></a>
                 <a class="nav-link" href="/espace/agenda"><?= t('mon_agenda') ?></a>
+                <a class="nav-link" href="/espace/abonnement"><?= t('cotisation') ?></a>
                 <?php if (Session::estBenevole()): ?>
                     <a class="nav-link" href="/espace/benevole"><?= t('espace_benevole') ?></a>
                 <?php endif; ?>

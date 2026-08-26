@@ -86,3 +86,12 @@ func MarquerRappelEnvoye(db *sql.DB, adhesionID int) error {
 	_, err := db.Exec(`UPDATE adhesion SET rappel_envoye_le = NOW() WHERE id = $1`, adhesionID)
 	return err
 }
+
+func CreerAdhesionPayee(db *sql.DB, utilisateurID int, montant float64, sessionID string) error {
+	_, err := db.Exec(`
+		INSERT INTO adhesion (utilisateur_id, date_debut, date_fin, montant, statut_paiement, stripe_session_id)
+		VALUES ($1, CURRENT_DATE, CURRENT_DATE + INTERVAL '1 year', $2, 'paye', $3)
+		ON CONFLICT (stripe_session_id) DO NOTHING`,
+		utilisateurID, montant, sessionID)
+	return err
+}
