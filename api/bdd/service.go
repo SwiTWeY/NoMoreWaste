@@ -57,6 +57,37 @@ func ListCreneaux(db *sql.DB, langue string) ([]models.Creneau, error) {
 	return creneaux, rows.Err()
 }
 
+func ListCreneauxDisponibles(db *sql.DB, langue string, utilisateurID int) ([]models.Creneau, error) {
+	rows, err := db.Query(`
+		SELECT c.id, c.service_id, st.libelle, c.date_creneau,
+		       to_char(c.heure_debut, 'HH24:MI'), to_char(c.heure_fin, 'HH24:MI'),
+		       COALESCE(c.lieu, ''), c.capacite_max, c.statut
+		FROM creneau c
+		JOIN service s ON s.id = c.service_id
+		JOIN langue l ON l.code = $1
+		JOIN service_traduction st ON st.service_id = s.id AND st.langue_id = l.id
+		WHERE NOT EXISTS (
+			SELECT 1 FROM inscription i
+			WHERE i.creneau_id = c.id AND i.utilisateur_id = $2
+		)
+		ORDER BY c.date_creneau, c.heure_debut`, langue, utilisateurID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	creneaux := []models.Creneau{}
+	for rows.Next() {
+		var c models.Creneau
+		if err := rows.Scan(&c.ID, &c.ServiceID, &c.ServiceLibelle, &c.DateCreneau,
+			&c.HeureDebut, &c.HeureFin, &c.Lieu, &c.CapaciteMax, &c.Statut); err != nil {
+			return nil, err
+		}
+		creneaux = append(creneaux, c)
+	}
+	return creneaux, rows.Err()
+}
+
 func CreerInscription(db *sql.DB, creneauID, utilisateurID int) error {
 	_, err := db.Exec(`
 		INSERT INTO inscription (creneau_id, utilisateur_id)

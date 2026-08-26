@@ -41,6 +41,20 @@ func (h ServiceHandler) ListCreneaux(w http.ResponseWriter, r *http.Request) {
 	utils.JSON(w, http.StatusOK, creneaux)
 }
 
+func (h ServiceHandler) ListCreneauxDisponibles(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.ClaimsDepuis(r)
+	if !ok {
+		utils.Error(w, http.StatusUnauthorized, "non authentifie")
+		return
+	}
+	creneaux, err := bdd.ListCreneauxDisponibles(h.DB, langueDe(r), claims.UtilisateurID)
+	if err != nil {
+		utils.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	utils.JSON(w, http.StatusOK, creneaux)
+}
+
 func (h ServiceHandler) ExportPlanning(w http.ResponseWriter, r *http.Request) {
 	creneaux, err := bdd.ListCreneaux(h.DB, langueDe(r))
 	if err != nil {

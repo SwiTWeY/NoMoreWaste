@@ -65,6 +65,7 @@ func main() {
 	// --- Adherent connecte (front-office) ---
 	mux.Handle("POST /creneaux/{id}/inscription", connecte(service.Inscrire))
 	mux.Handle("GET /mon-agenda", connecte(service.MonAgenda))
+	mux.Handle("GET /creneaux-disponibles", connecte(service.ListCreneauxDisponibles))
 	mux.Handle("POST /creneaux/{id}/affectation", connecte(benevole.ProposerAnimation))
 	mux.Handle("POST /benevoles/candidature", connecte(benevole.Postuler))
 	mux.Handle("POST /paiement/checkout", connecte(paiement.CreerCheckout))

@@ -116,7 +116,7 @@ switch ($chemin) {
     case '/espace/services':
         if (!Session::estConnecte()) { header('Location: /login'); exit; }
         $api = new ApiClient($config['api_url'], Session::token());
-        rendre('espace/services', ['titre' => 'Services', 'creneaux' => $api->get('/creneaux')['donnees'], 'message' => null], 'layouts/front');
+        rendre('espace/services', ['titre' => 'Services', 'creneaux' => $api->get('/creneaux-disponibles')['donnees'], 'message' => null], 'layouts/front');
         break;
 
     case '/espace/inscription':
@@ -125,7 +125,7 @@ switch ($chemin) {
         $creneauId = (int) ($_POST['creneau_id'] ?? 0);
         $reponse = $api->post('/creneaux/' . $creneauId . '/inscription', []);
         $msg = $reponse['statut'] === 201 ? 'Inscription enregistrée !' : ($reponse['donnees']['error'] ?? 'Inscription impossible');
-        rendre('espace/services', ['titre' => 'Services', 'creneaux' => $api->get('/creneaux')['donnees'], 'message' => $msg], 'layouts/front');
+        rendre('espace/services', ['titre' => 'Services', 'creneaux' => $api->get('/creneaux-disponibles')['donnees'], 'message' => $msg], 'layouts/front');
         break;
 
     case '/espace/abonnement':
