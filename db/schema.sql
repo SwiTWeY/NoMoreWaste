@@ -328,7 +328,7 @@ SELECT
     p.libelle,
     p.categorie,
     p.date_limite,
-    COALESCE(entrees.total, 0) - COALESCE(sorties.total, 0) AS quantite_stock
+    COALESCE(entrees.total, 0) - COALESCE(sorties.total, 0) AS quantite_stock, p.unite
 FROM produit p
 LEFT JOIN (
     SELECT produit_id, SUM(quantite) AS total

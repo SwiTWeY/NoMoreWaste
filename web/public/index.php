@@ -248,7 +248,8 @@ switch ($chemin) {
     case '/utilisateurs':
         exigerPersonnel();
         $api = new ApiClient($config['api_url'], Session::token());
-        rendre('utilisateurs/index', ['titre' => 'Utilisateurs', 'utilisateurs' => $api->get('/utilisateurs')['donnees']]);
+        $role = $_GET['role'] ?? '';
+        rendre('utilisateurs/index', ['titre' => 'Utilisateurs', 'utilisateurs' => $api->get('/utilisateurs?role=' . urlencode($role))['donnees']]);
         break;
         case '/produits/nouveau':
         exigerPersonnel();

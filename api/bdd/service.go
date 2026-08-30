@@ -70,6 +70,7 @@ func ListCreneauxDisponibles(db *sql.DB, langue string, utilisateurID int) ([]mo
 			SELECT 1 FROM inscription i
 			WHERE i.creneau_id = c.id AND i.utilisateur_id = $2
 		)
+		AND c.date_creneau >= CURRENT_DATE
 		ORDER BY c.date_creneau, c.heure_debut`, langue, utilisateurID)
 	if err != nil {
 		return nil, err
@@ -106,13 +107,13 @@ func MonAgenda(db *sql.DB, utilisateurID int) ([]models.EvenementAgenda, error) 
 		JOIN service s ON s.id = c.service_id
 		JOIN langue l ON l.code = 'fr'
 		JOIN service_traduction st ON st.service_id = s.id AND st.langue_id = l.id
-		WHERE i.utilisateur_id = $1
+		WHERE i.utilisateur_id = $1 AND c.date_creneau >= CURRENT_DATE
 		UNION ALL
 		SELECT 'collecte', co.date_prevue::date, to_char(co.date_prevue, 'HH24:MI'),
 		       'Collecte', COALESCE(co.adresse_collecte, ''), co.statut
 		FROM collecte co
-		WHERE co.donateur_id = $1
-		   OR co.commercant_id IN (SELECT id FROM commercant WHERE utilisateur_id = $1)
+		WHERE (co.donateur_id = $1
+		   OR co.commercant_id IN (SELECT id FROM commercant WHERE utilisateur_id = $1)) AND co.date_prevue >= CURRENT_DATE
 		ORDER BY d, h`, utilisateurID)
 	if err != nil {
 		return nil, err

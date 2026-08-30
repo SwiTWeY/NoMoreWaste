@@ -57,6 +57,7 @@ func EnvoyerRappels(ctx context.Context, db *sql.DB, cfg config.Config) (int, er
 
 			sem <- struct{}{}
 			defer func() { <-sem }()
+			log.Printf("[rappel] envoi -> %s", r.Email)
 
 			if err := envoyerUn(db, cfg, r); err != nil {
 				log.Printf("rappel adhesion %d: %v", r.AdhesionID, err)
